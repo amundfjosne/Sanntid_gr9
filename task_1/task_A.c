@@ -95,7 +95,7 @@ void task_a_sleep_busy_wait_using_times(void) {
 int main(void){
 	/* code */
 	//task_a_sleep();
-	task_a_sleep_busy_wait();
-    //task_a_sleep_busy_wait_using_times();
+	//task_a_sleep_busy_wait();
+    task_a_sleep_busy_wait_using_times();
 	return 0;
 }

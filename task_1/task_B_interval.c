@@ -115,5 +115,5 @@ void task_b_times() {
 void main(void) {
 	//task_b_rdtsc();
 	//task_b_clock_gettime();
-	task_b_times();
+	//task_b_times();
 }
