@@ -73,12 +73,29 @@ void task_a_sleep_busy_wait(void) {
 	printf("Slept for 1 second using busy_wait\n" );
 }
 
+void task_a_sleep_busy_wait_using_times(void) {
+	struct tms start, later;
+	//clock_t start_time = times(&start); // Initial Time
+
+    for (size_t i = 0; i < 1; i++)
+	{
+		clock_t start_time = times(&start); // Initial Time
+		while (((times(&later) - start_time)/100) < 1) {
+			//printf("%lld\n", (long long)(times(&later)));
+		}
+    }
+
+
+    printf("Slept for 1 second using busy_wait with times function\n" );
+}
+
 
 
 
 int main(void){
 	/* code */
 	//task_a_sleep();
-	//task_a_sleep_busy_wait();
+	task_a_sleep_busy_wait();
+    //task_a_sleep_busy_wait_using_times();
 	return 0;
 }
