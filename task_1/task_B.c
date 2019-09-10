@@ -28,10 +28,24 @@ void task_b_rdtsc() {
 }
 
 void task_b_clock_gettime() {
+	struct timespec now;
 	unsigned long long initial, current;
 	initial = rdtsc();
 	for(int i = 0; i < 10*1000*1000; i++){
-    rdtsc();
+        clock_gettime(CLOCK_MONOTONIC, &now);
+    }
+	current = rdtsc();
+
+	printf("Time average = %f\n", (current-initial)/(10*1000*1000)/(2.6));
+
+}
+
+void task_b_times() {
+	struct tms start;
+	unsigned long long initial, current;
+	initial = rdtsc();
+	for(int i = 0; i < 10*1000*1000; i++){
+        times(&start);
     }
 	current = rdtsc();
 
@@ -41,6 +55,9 @@ void task_b_clock_gettime() {
 
 
 
+
 void main(void) {
-	task_b_rdtsc();
+	//task_b_rdtsc();
+	//task_b_clock_gettime();
+	task_b_times();
 }
