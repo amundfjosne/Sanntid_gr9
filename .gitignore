@@ -1,6 +1,8 @@
 # Ignore all
 *
 
+# Unignore makefile
+!makefile
 # Unignore all with extensions
 !*.*
 
