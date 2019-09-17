@@ -82,14 +82,26 @@ long array_length(Array a){
 
 void array_reserve(Array* a, long capacity){
     Array new_list = array_new(capacity);
+    printf("new_list pointer %p\n", (new_list.data));
+
+
     Array temp_array = array_save(*a);
 
     *a = array_save(new_list);
 
-    for(long i =0; i<array_length(*a); i++)
+    array_print(temp_array);
+
+    //printf("a_back %ld\n", a->back);
+    //printf("a_front %ld\n", a->front);
+    //printf("a_cap %ld\n", a->capacity);
+
+    for(long i =0; i<array_length(temp_array); i++)
     {
         array_insertBack(a, temp_array.data[i]);
     }
+    array_destroy(temp_array);
+
+
 
 
 }
@@ -101,7 +113,7 @@ void array_insertBack(Array* a, long stuff){
     long length_a = array_length(*a);
     long capacity = a->capacity;
 
-    if( a->back >= (capacity-1))
+    if( a->back >= (capacity))
     {
         printf("at end, reserving more space\n");
         array_reserve(a, capacity*2);
@@ -110,6 +122,6 @@ void array_insertBack(Array* a, long stuff){
     }
     a->data[length_a] = stuff;
 	a->back++;
-    printf(" %ld\n", a->back);
+    //printf(" %ld\n", a->back);
 
 }

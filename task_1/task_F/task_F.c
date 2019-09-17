@@ -22,7 +22,7 @@ int main(void) {
 
 
 
-	for(int i =0; i < array_length+2; i++ )
+	for(int i =0; i < array_length*5; i++ )
 	{
          array_insertBack(&array_a, i);
 	}
