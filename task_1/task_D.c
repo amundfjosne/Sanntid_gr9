@@ -21,7 +21,7 @@ void task_D(void) {
 	for(long y = 0; y < y_dim; y++)
 	{
 	    matrix[y] = malloc(x_dim*sizeof(long));  // memory pointer
-		memset(matrix[y], 0, x_dim*sizeof(long)); // Fuck shit up?
+		//memset(matrix[y], 0, x_dim*sizeof(long)); // Fuck shit up?
 	}
 
 	printf("Allocation complete (press any key to continue...)\n");

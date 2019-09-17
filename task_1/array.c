@@ -1,4 +1,4 @@
-﻿#include <malloc.h>
+#include <malloc.h>
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
@@ -88,7 +88,7 @@ void array_reserve(Array* a, long capacity){
 // Modifiers
 
 void array_insertBack(Array* a, long stuff){
-
+    long length_a = array_length(*a);
+    a->data[length_a] = stuff;
+	a->back++; 
 }
-
-
