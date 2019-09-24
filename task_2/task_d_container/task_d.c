@@ -29,8 +29,9 @@ sem_t                       g_singletonInitSem;
 
 
 struct Singleton* getSingleton(){
+    sem_wait(&g_singletonInitSem);
     if(!g_singleton){
-        sem_wait(&g_singletonInitSem);
+
 		// Warning race condition can occur as the struct can be read before init is complete. Will give incomplete struct as output
 		// Solved byt locking the entire initialization of the singleton
         if(!g_singleton){
@@ -48,8 +49,9 @@ struct Singleton* getSingleton(){
             g_singleton->d = 4444;
             nonOptimizedBusyWait();
         }
-        sem_post(&g_singletonInitSem);
+
     }
+    sem_post(&g_singletonInitSem);
     return g_singleton;
 }
 
