@@ -1,3 +1,5 @@
+Task D:
+
 Idle: Memory: 0.92 GiB, Swap: 1.5 GiB 
 Super slow (x = 100,   y = 1000*1000*10) Memory: 7.5 GiB, Swap: 2.6 GiB
 Quite fast (x = 1000,  y = 1000*1000)    Memory: 4.9 GiB, Swap: 1.5 GiB
@@ -5,3 +7,9 @@ Super fast (x = 10000, y = 1000*100)     Memory: 1.4 GiB, Swap: 1.5 GiB
 
 Setting all to zero
 Suuuuper slow (x = 10000, y = 1000*100)     Memory: 7.6 GiB, Swap: 2.6 GiB
+
+
+Task G:
+
+*2: Difference of 0x800 000 000
+*1.5: Difference of 0x400 000 000 but more all over the place
