@@ -31,6 +31,8 @@ sem_t                       g_singletonInitSem;
 struct Singleton* getSingleton(){
     if(!g_singleton){
         sem_wait(&g_singletonInitSem);
+		// Warning race condition can occur as the struct can be read before init is complete. Will give incomplete struct as output
+		// Solved byt locking the entire initialization of the singleton
         if(!g_singleton){
             // Performing some expensive initialization...
             printf("Initializing singleton...\n");
