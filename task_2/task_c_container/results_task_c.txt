@@ -1,0 +1,17 @@
+Without semaphore
+User: 0.00
+System: 0.30
+CPU: 193%
+Total: 0.153
+
+With semaphore (On each iteration):
+User: 0.00
+System: 62.67
+CPU: 184%
+Total: 34.051
+
+With semaphore (Around for-loop):
+User: 0.00
+System: 0.24
+CPU: 96%
+Total: 0.249
