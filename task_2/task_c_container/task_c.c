@@ -16,13 +16,14 @@ void* fn(void* args){
 
     long i_local = 0;
 
+    sem_wait(&sem_1);
 	for(i_local; i_local<COUNTER_LIMIT; i_local++)
     {
-        sem_wait(&sem_1);
-        i ++;
-        sem_post(&sem_1);
-	}
 
+        i ++;
+
+	}
+    sem_post(&sem_1);
     printf("Local i = %ld\n", i_local);
     return NULL;
 }
