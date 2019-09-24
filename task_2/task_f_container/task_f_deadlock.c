@@ -1,4 +1,4 @@
-//usr/bin/clang "$0" -o task_f_deadlock -std=gnu11 -g -O3 -lpthread  && exec ./task_f_deadlock
+//usr/bin/clang "$0" -o task_f_deadlock -std=gnu11 -g -O3 -lpthread -fsanitize=thread  && exec ./task_f_deadlock
 //-fsanitize=thread
 #include <stdio.h>
 #include <semaphore.h>

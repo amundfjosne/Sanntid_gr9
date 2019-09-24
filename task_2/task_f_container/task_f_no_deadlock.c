@@ -1,5 +1,5 @@
-//usr/bin/clang "$0" -o task_f_no_deadlock -std=gnu11 -g -O3 -lpthread  && exec ./task_f_no_deadlock
-//-fsanitize=thread
+//usr/bin/clang "$0" -o task_f_no_deadlock -std=gnu11 -g -fsanitize=thread -O3 -lpthread  && exec ./task_f_no_deadlock
+//
 #include <stdio.h>
 #include <semaphore.h>
 #include <pthread.h>
@@ -30,18 +30,22 @@ void* fn(void* args){
 	    }
 
         printf("Philos %i is waiting for forks \n", *num);
-        pthread_mutex_lock(&forks[left_fork]); // Taken left fork
-        printf("Philos %i has left fork %i\n", *num, left_fork);
-	    pthread_mutex_lock(&forks[right_fork]); // Taken right fork
+		if(!pthread_mutex_trylock(&forks[left_fork])){
 
-        printf("Philos %i has right fork %i\n", *num, right_fork);
+			printf("Philos %i has left fork %i\n", *num, left_fork);
+
+			if (!pthread_mutex_trylock(&forks[right_fork]))
+			{
 
 
-	    //sleep(1);
+			    printf("Philos %i has right fork %i\n", *num, right_fork);
+				sleep(0);
+				pthread_mutex_unlock(&forks[right_fork]); // Release right fork
+		    }
+			pthread_mutex_unlock(&forks[left_fork]); // Release left fork
+			sleep(0);
+		}
 
-	    pthread_mutex_unlock(&forks[left_fork]); // Taken left fork
-
-	    pthread_mutex_unlock(&forks[((*num)+1)%5]); // Taken right fork
         printf("Philos %i has released forks %i and %i\n", *num, left_fork, right_fork );
 
 
