@@ -60,7 +60,7 @@ void* responseTaskPeriodic(void* args)
 	struct timespec waketime;
 	clock_gettime(CLOCK_REALTIME, &waketime);
 
-	struct timespec period = {.tv_sec = 0, .tv_nsec = 1000};
+	struct timespec period = {.tv_sec = 0, .tv_nsec = 1000000};
 
 	struct responseTaskArgs a = *(struct responseTaskArgs*)args;
 	printf("Periodic task %ld started\n", a.channel);
@@ -69,7 +69,7 @@ void* responseTaskPeriodic(void* args)
 		if (!io_read(a.channel))
 		{
 			io_write(a.channel, LOW);
-			sleep(0);
+			usleep(5);
 			io_write(a.channel, HIGH);
 		}
 
