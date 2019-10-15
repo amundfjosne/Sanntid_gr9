@@ -22,7 +22,7 @@
 
 //#define TASK_A
 //#define TASK_B
-//#define DISTURBANCES //Task C and Task D
+#define DISTURBANCES //Task C and Task D
 #define TASK_D
 
 struct responseTaskArgs {
