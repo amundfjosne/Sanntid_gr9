@@ -1,20 +1,12 @@
 // Command for reading serial:
 // sudo cat /dev/ttyS0
 
-/* Task 5 headers */
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <pthread.h>
 #include <time.h>
 #include <sched.h>
 #include <unistd.h>
-
-/* Task 6 headers */
-#include <native/task.h>
-#include <native/timer.h>
-#include <sys/mman.h>
-#include <rtdk.h>
-
 
 #include "io.h"
 #include "timespec.h"
@@ -27,11 +19,11 @@
 #define HIGH 1
 
 #define NUMBER_OF_DISTURBANCE_TASKS 10
-#define PRIORITY					0
-#define PERIOD 						10
 
-//#define PERIODIC
-//#define DISTURBANCES
+//#define TASK_A
+//#define TASK_B
+#define DISTURBANCES //Task C and Task D
+#define TASK_D
 
 struct responseTaskArgs {
 	long channel;
@@ -48,28 +40,20 @@ int set_cpu(int cpu_number){
 void* responseTask(void* args)
 {
 	struct responseTaskArgs a = *(struct responseTaskArgs*)args;
-	rt_printf("Busy wait task %ld started\n", a.channel);
-	unsigned long duration = 100000000000;  // 10 second timeout
-	unsigned long endTime = rt_timer_read() + duration;
-	
 	while(1){
+
 		if (!io_read(a.channel))
 		{
 			io_write(a.channel, LOW);
-			usleep(5);
+			sleep(0);
 			io_write(a.channel, HIGH);
 		}
-	    if(rt_timer_read() > endTime){
-	        rt_printf("Time expired\n");
-	        rt_task_delete(NULL);
-	    }
-	    if(rt_task_yield()){
-	        rt_printf("Task failed to yield\n");
-	        rt_task_delete(NULL);
-	    }
+		sleep(0);
 	}
+    return NULL;
 }
 
+/// Periodic execution example ///
 void* responseTaskPeriodic(void* args)
 {
 
@@ -79,7 +63,7 @@ void* responseTaskPeriodic(void* args)
 	struct timespec period = {.tv_sec = 0, .tv_nsec = 1000000};
 
 	struct responseTaskArgs a = *(struct responseTaskArgs*)args;
-	rt_printf("Periodic task %ld started\n", a.channel);
+	printf("Periodic task %ld started\n", a.channel);
 	while(1)
 	{
 		if (!io_read(a.channel))
@@ -95,6 +79,7 @@ void* responseTaskPeriodic(void* args)
 	}
 }
 
+
 void* disturbanceTask(void* args)
 {
 	while(1)
@@ -103,59 +88,92 @@ void* disturbanceTask(void* args)
 	}
 }
 
-struct responseTaskArgs args_A;
-struct responseTaskArgs args_B;
-struct responseTaskArgs args_C;
-
-RT_TASK task1;
-RT_TASK task2;
-RT_TASK task3;
-
 
 int main(){
 	/*******************************************************
+	****			     Print task 	  				****
+	*******************************************************/
+#	ifdef TASK_A
+	printf("Task A\n");
+#	endif
+
+#	ifdef TASK_B
+	printf("Task B\n");
+#	endif
+
+#	ifdef TASK_D
+	printf("Task D\n");
+#	ifdef DISTURBANCES
+		printf("With disturbances\n");
+#	endif
+#	else
+#	ifdef DISTURBANCES
+		printf("Task C\n");
+#	endif
+#	endif
+
+	/*******************************************************
 	****			     		Init	  				****
 	*******************************************************/
-	rt_print_auto_init(1);
-	mlockall(MCL_CURRENT | MCL_FUTURE);
 	io_init();
+#	ifndef TASK_A
 	set_cpu(1);
+#	endif
+
+	printf("Starting...\n");
+
+    pthread_t threadHandle_A, threadHandle_B, threadHandle_C;
+	pthread_t disturbanceHandle[10];
+
+	struct responseTaskArgs args_A;
+	struct responseTaskArgs args_B;
+	struct responseTaskArgs args_C;
 
 	args_A.channel = CH1;
 	args_B.channel = CH2;
 	args_C.channel = CH3;
-	pthread_t disturbanceHandle[10];
-
-
-	rt_printf("Starting...\n");
 
 	/*******************************************************
 	****			     Create threads  				****
 	*******************************************************/
-
-	rt_task_create(&task1, "task 1", 0, PRIORITY, T_CPU(1));
-	rt_task_create(&task3, "task 3", 0, PRIORITY, T_CPU(1));
-	rt_task_create(&task2, "task 2", 0, PRIORITY, T_CPU(1));
-#	ifndef PERIODIC
-	rt_task_start(&task1, &responseTask, &args_A);
-	rt_task_start(&task2, &responseTask, &args_B);
-	rt_task_start(&task3, &responseTask, &args_C);
+# 	ifdef TASK_D
+	pthread_create(&threadHandle_A, NULL, responseTaskPeriodic, &args_A);
+	pthread_create(&threadHandle_B, NULL, responseTaskPeriodic, &args_B);
+	pthread_create(&threadHandle_C, NULL, responseTaskPeriodic, &args_C);
 #	else
-	// Change these
-	rt_task_start(&task1, &responseTask, &args_A);
-	rt_task_start(&task2, &responseTask, &args_B);
-	rt_task_start(&task3, &responseTask, &args_C);
+	pthread_create(&threadHandle_A, NULL, responseTask, &args_A);
+	pthread_create(&threadHandle_B, NULL, responseTask, &args_B);
+	pthread_create(&threadHandle_C, NULL, responseTask, &args_C);
 #	endif
+
 
 #	ifdef DISTURBANCES
 	for (int i = 0; i < NUMBER_OF_DISTURBANCE_TASKS; i++)
 	{
-		rt_printf("DisturbanceTask %d created\n", i);
+		printf("DisturbanceTask %d created\n", i);
 		pthread_create(&disturbanceHandle[i], NULL, disturbanceTask, NULL);
 	}
 #	endif
 
 
-	pause();
+
+	/*******************************************************
+	****			      Join threads  				****
+	*******************************************************/
+
+    pthread_join(threadHandle_A, NULL);
+    pthread_join(threadHandle_B, NULL);
+	pthread_join(threadHandle_C, NULL);
+
+#	ifdef DISTURBANCES
+	for (int i = 0; i < NUMBER_OF_DISTURBANCE_TASKS; i++)
+	{
+		pthread_join(disturbanceHandle[i], NULL);
+		printf("DisturbanceTask %d joined\n", i);
+	}
+#	endif
+
+
+
 	printf("Finished!\n");
 }
