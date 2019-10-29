@@ -15,6 +15,8 @@
 #include <sys/mman.h>
 #include <rtdk.h>
 
+/* Task 7 headers */
+#include "native/sem.h"
 
 #include "io.h"
 #include "timespec.h"

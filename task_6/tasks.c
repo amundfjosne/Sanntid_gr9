@@ -27,7 +27,7 @@
 #define HIGH 1
 
 #define NUMBER_OF_DISTURBANCE_TASKS 10
-#define PRIORITY					0
+#define PRIORITY					10
 #define PERIOD_ns					1000000 //1us
 
 #define PERIODIC
@@ -48,8 +48,8 @@ int set_cpu(int cpu_number){
 void* responseTask(void* args)
 {
 	struct responseTaskArgs a = *(struct responseTaskArgs*)args;
-	rt_printf("Busy wait task %ld started\n", a.channel);
-	unsigned long duration = 100000000000;  // 100 second timeout
+	printf("Busy wait task %ld started\n", a.channel);
+	unsigned long duration = 50000000000;  // 100 second timeout
 	unsigned long endTime = rt_timer_read() + duration;
 	
 	while(1){
@@ -75,7 +75,7 @@ void* responseTaskPeriodic(void* args)
 
 	struct responseTaskArgs a = *(struct responseTaskArgs*)args;
     rt_printf("Periodic task %ld started\n", a.channel);
-    unsigned long duration = 100000000000;  // 100 second timeout
+    unsigned long duration = 50000000000;  // 100 second timeout
 	unsigned long endTime = rt_timer_read() + duration;
 	while(1){
 		//rt_printf("Periodic task %ld working\n", a.channel);
@@ -121,6 +121,9 @@ int main(){
 	*******************************************************/
 	rt_print_auto_init(1);
 	mlockall(MCL_CURRENT | MCL_FUTURE);
+
+	//rt_task_shadow(NULL, "main", PRIORITY, T_CPU(1));
+
 	io_init();
 	set_cpu(1);
 
@@ -152,18 +155,18 @@ int main(){
 	rt_task_start(&task2, &responseTask, &args_B);
 	rt_task_start(&task3, &responseTask, &args_C);
 #	else
-	// Change these
-	rt_task_start(&task1, &responseTaskPeriodic, &args_A);
-	rt_task_start(&task2, &responseTaskPeriodic, &args_B);
-	rt_task_start(&task3, &responseTaskPeriodic, &args_C);
 	rt_task_set_periodic(&task1, TM_NOW, PERIOD_ns);
 	rt_task_set_periodic(&task2, TM_NOW, PERIOD_ns);
 	rt_task_set_periodic(&task3, TM_NOW, PERIOD_ns);
+	rt_task_start(&task1, &responseTaskPeriodic, &args_A);
+	rt_task_start(&task2, &responseTaskPeriodic, &args_B);
+	rt_task_start(&task3, &responseTaskPeriodic, &args_C);
+
 #	endif
 
 
 
-
+	//rt_task_sleep(PERIOD_ns*1000*1000);
 	pause();
-	printf("Finished!\n");
+	rt_printf("Finished!\n");
 }
