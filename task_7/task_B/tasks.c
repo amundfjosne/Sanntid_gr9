@@ -74,10 +74,11 @@ void waitTask(void* args)
 	if (a.channel == 1) //Low
 	{
 		rt_printf("Task L released\n");
-
+		rt_sem_inquire(&resource, &info1);
+		rt_printf("Resource before L has count = %ld\n", info1.count);
 		retval_sem_p_L = rt_sem_p(&resource, TM_INFINITE); // Lock the resource
 		rt_sem_inquire(&resource, &info1);
-		rt_printf("Task L locked resource with retval =  %d\n", retval_sem_p_L);
+		rt_printf("Task L locked resource with retval =  %ld\n", retval_sem_p_L);
 		rt_printf("Resource after L has count = %ld\n", info1.count);
 
 		busy_wait_us(MS_TO_US(a.busy_wait_time)); // Busy wait
@@ -106,7 +107,7 @@ void waitTask(void* args)
 		rt_printf("Resource before H has count = %ld\n", info2.count);
 		retval_sem_p_H = rt_sem_p(&resource, TM_INFINITE); // Lock the resource
 		rt_sem_inquire(&resource, &info2);
-		rt_printf("Task H locked resource with retval =  %d\n", retval_sem_p_H);
+		rt_printf("Task H locked resource with retval =  %ld\n", retval_sem_p_H);
 		rt_printf("Resource after H has count = %ld\n", info2.count);
 
 		busy_wait_us(MS_TO_US(a.busy_wait_time)); // Busy wait

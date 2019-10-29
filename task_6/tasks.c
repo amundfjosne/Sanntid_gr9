@@ -167,7 +167,7 @@ int main(){
 
 
 
-	//rt_task_sleep(PERIOD_ns*1000*1000);
+	
 	pause();
 	rt_printf("Finished!\n");
 }
