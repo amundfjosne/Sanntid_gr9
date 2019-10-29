@@ -17,6 +17,7 @@
 
 /* Task 7 headers */
 #include <native/sem.h>
+#include <native/mutex.h>
 
 #define PRIORITY					1
 #define MS_TO_NS(x)					x*1000*1000
@@ -38,8 +39,8 @@ RT_TASK task_M;
 RT_TASK task_H;
 RT_TASK ctrl;
 
-RT_SEM sem1;
-RT_SEM resource;
+RT_SEM   sem1;
+RT_MUTEX resource;
 
 
 int set_cpu(int cpu_number){
@@ -52,7 +53,8 @@ int set_cpu(int cpu_number){
 
 void busy_wait_us(unsigned long delay)
 {
-    for(; delay > 0; delay--)
+
+	for(; delay > 0; delay--)
     {
         rt_timer_spin(1000);
 	}
@@ -74,12 +76,18 @@ void waitTask(void* args)
 	if (a.channel == 1) //Low
 	{
 		rt_printf("Task L released\n");
-		retval_sem_p_L = rt_sem_p(&resource, TM_INFINITE); // Lock the resource
+		retval_sem_p_L = rt_mutex_acquire(&resource, TM_INFINITE); // Lock the resource
 		rt_printf("Task L locked resource with retval =  %ld\n", retval_sem_p_L);
+   		for(int printloop = 5; printloop > 0; printloop--)
+   		{
+   			struct rt_task_info temp;
+			rt_task_inquire(NULL, &temp);
+			busy_wait_us(MS_TO_US(a.busy_wait_time)); // Busy wait
+			rt_printf("Task L busy waiting with Base prio: %i and Current prio: %i\n", temp.bprio, temp.cprio);
+		}
 
-		busy_wait_us(MS_TO_US(a.busy_wait_time)); // Busy wait
 		rt_printf("Task L unlocked resource\n");
-		rt_sem_v(&resource); // Unlock the resource
+		rt_mutex_release(&resource); // Unlock the resource
 		rt_printf("Task L finished\n");	
 	}
 
@@ -88,7 +96,14 @@ void waitTask(void* args)
 		rt_printf("Task M released\n");
 
 		rt_task_sleep(MS_TO_NS(a.sleep_time)); // Sleep
-		busy_wait_us(MS_TO_US(a.busy_wait_time)); // Busy wait
+
+		for(int printloop = 5; printloop > 0; printloop--)
+   		{
+   			struct rt_task_info temp;
+			rt_task_inquire(NULL, &temp);
+			busy_wait_us(MS_TO_US(a.busy_wait_time)); // Busy wait
+			rt_printf("Task M busy waiting with Base prio: %i and Current prio: %i\n", temp.bprio, temp.cprio);
+		}
 
 		rt_printf("Task M finished\n");	
 	}
@@ -98,11 +113,18 @@ void waitTask(void* args)
 		rt_printf("Task H released\n");
 
 		rt_task_sleep(MS_TO_NS(a.sleep_time)); // Sleep
-		retval_sem_p_H = rt_sem_p(&resource, TM_INFINITE); // Lock the resource
+		retval_sem_p_H = rt_mutex_acquire(&resource, TM_INFINITE); // Lock the resource
 		rt_printf("Task H locked resource with retval =  %ld\n", retval_sem_p_H);
-		busy_wait_us(MS_TO_US(a.busy_wait_time)); // Busy wait
+		for(int printloop = 5; printloop > 0; printloop--)
+		{
+   			struct rt_task_info temp;
+			rt_task_inquire(NULL, &temp);
+			busy_wait_us(MS_TO_US(a.busy_wait_time)); // Busy wait
+			rt_printf("Task H busy waiting with Base prio: %i and Current prio: %i\n", temp.bprio, temp.cprio);
+		}
+
 		rt_printf("Task H unlocked resource\n");
-		rt_sem_v(&resource); // Unlock the resource
+		rt_mutex_release(&resource); // Unlock the resource
 
 		rt_printf("Task H finished\n");	
 	}	
@@ -121,15 +143,15 @@ int main(){
 
 	wait_args_L.channel = 1;
 	wait_args_L.sleep_time = 0;
-	wait_args_L.busy_wait_time = 300;
+	wait_args_L.busy_wait_time = 60;
 	
 	wait_args_M.channel = 2;
 	wait_args_M.sleep_time = 100;
-	wait_args_M.busy_wait_time = 500;
+	wait_args_M.busy_wait_time = 100;
 
 	wait_args_H.channel = 3;
 	wait_args_H.sleep_time = 200;
-	wait_args_H.busy_wait_time = 200;
+	wait_args_H.busy_wait_time = 40;
 	
 
 	rt_printf("Starting...\n");
@@ -142,7 +164,7 @@ int main(){
 	
 	/* Semaphore creation */
 	rt_sem_create(&sem1, "sem1", 0, S_FIFO);
-	rt_sem_create(&resource, "resource", 1, S_PRIO);
+	rt_mutex_create(&resource, "resource");
 
 	/* Task creation */
 	rt_task_create(&task_L, "task L", 0, PRIORITY+0, T_CPU(1)|T_JOINABLE);
@@ -165,7 +187,7 @@ int main(){
 
 	/* Semaphore deletion */
 	rt_sem_delete(&sem1);
-	rt_sem_delete(&resource);
+	rt_mutex_delete(&resource);
 
 	rt_printf("Finished!\n");
 }

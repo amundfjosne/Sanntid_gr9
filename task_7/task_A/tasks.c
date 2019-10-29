@@ -27,7 +27,7 @@
 
 #define NUMBER_OF_DISTURBANCE_TASKS 10
 #define PRIORITY					1
-#define MS_TO_NS(x)					x*1000000
+#define SLEEP_PERIOD				1000000 //1ms
 
 struct responseTaskArgs {
 	long channel;
