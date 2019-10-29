@@ -30,8 +30,8 @@
 #define PRIORITY					0
 #define PERIOD_ns					1000000
 
-//#define PERIODIC
-#define DISTURBANCES
+#define PERIODIC
+//#define DISTURBANCES
 
 struct responseTaskArgs {
 	long channel;
