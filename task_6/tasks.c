@@ -28,10 +28,10 @@
 
 #define NUMBER_OF_DISTURBANCE_TASKS 10
 #define PRIORITY					0
-#define PERIOD 						10
+#define PERIOD_ns					1000000
 
 //#define PERIODIC
-//#define DISTURBANCES
+#define DISTURBANCES
 
 struct responseTaskArgs {
 	long channel;
@@ -49,14 +49,14 @@ void* responseTask(void* args)
 {
 	struct responseTaskArgs a = *(struct responseTaskArgs*)args;
 	rt_printf("Busy wait task %ld started\n", a.channel);
-	unsigned long duration = 100000000000;  // 10 second timeout
+	unsigned long duration = 100000000000;  // 100 second timeout
 	unsigned long endTime = rt_timer_read() + duration;
 	
 	while(1){
 		if (!io_read(a.channel))
 		{
 			io_write(a.channel, LOW);
-			usleep(5);
+			rt_timer_spin(5000000);
 			io_write(a.channel, HIGH);
 		}
 	    if(rt_timer_read() > endTime){
@@ -73,26 +73,29 @@ void* responseTask(void* args)
 void* responseTaskPeriodic(void* args)
 {
 
-	struct timespec waketime;
-	clock_gettime(CLOCK_REALTIME, &waketime);
-
-	struct timespec period = {.tv_sec = 0, .tv_nsec = 1000000};
-
 	struct responseTaskArgs a = *(struct responseTaskArgs*)args;
-	rt_printf("Periodic task %ld started\n", a.channel);
-	while(1)
-	{
+    rt_printf("Periodic task %ld started\n", a.channel);
+    unsigned long duration = 100000000000;  // 100 second timeout
+	unsigned long endTime = rt_timer_read() + duration;
+	while(1){
+		//rt_printf("Periodic task %ld working\n", a.channel);
 		if (!io_read(a.channel))
 		{
 			io_write(a.channel, LOW);
-			usleep(5);
+			rt_timer_spin(5000000);
 			io_write(a.channel, HIGH);
 		}
-
-		// sleep
-	    waketime = timespec_add(waketime, period);
-	    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &waketime, NULL);
+	    if(rt_timer_read() > endTime){
+	        rt_printf("Time expired\n");
+	        rt_task_delete(NULL);
+	    }
+	    if(rt_task_yield()){
+	        rt_printf("Task failed to yield\n");
+	        rt_task_delete(NULL);
+	    }
+	    rt_task_wait_period(NULL);
 	}
+	
 }
 
 void* disturbanceTask(void* args)
@@ -142,9 +145,12 @@ int main(){
 	rt_task_start(&task3, &responseTask, &args_C);
 #	else
 	// Change these
-	rt_task_start(&task1, &responseTask, &args_A);
-	rt_task_start(&task2, &responseTask, &args_B);
-	rt_task_start(&task3, &responseTask, &args_C);
+	rt_task_start(&task1, &responseTaskPeriodic, &args_A);
+	rt_task_start(&task2, &responseTaskPeriodic, &args_B);
+	rt_task_start(&task3, &responseTaskPeriodic, &args_C);
+	rt_task_set_periodic(&task1, TM_NOW, PERIOD_ns);
+	rt_task_set_periodic(&task2, TM_NOW, PERIOD_ns);
+	rt_task_set_periodic(&task3, TM_NOW, PERIOD_ns);
 #	endif
 
 #	ifdef DISTURBANCES
