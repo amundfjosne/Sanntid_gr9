@@ -27,11 +27,11 @@
 #define HIGH 1
 
 #define NUMBER_OF_DISTURBANCE_TASKS 10
-#define PRIORITY					10
-#define PERIOD_ns					1000000 //1us
+#define PRIORITY					1
+#define PERIOD_ns					1000000 //1ms
 
 #define PERIODIC
-#define DISTURBANCES
+//#define DISTURBANCES
 
 struct responseTaskArgs {
 	long channel;
@@ -45,10 +45,11 @@ int set_cpu(int cpu_number){
 	return pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpu);
 }
 
-void* responseTask(void* args)
+void responseTask(void* args)
 {
+	rt_task_sleep(1000000);
 	struct responseTaskArgs a = *(struct responseTaskArgs*)args;
-	printf("Busy wait task %ld started\n", a.channel);
+	rt_printf("Busy wait task %ld started\n", a.channel);
 	unsigned long duration = 50000000000;  // 100 second timeout
 	unsigned long endTime = rt_timer_read() + duration;
 	
@@ -70,7 +71,7 @@ void* responseTask(void* args)
 	}
 }
 
-void* responseTaskPeriodic(void* args)
+void responseTaskPeriodic(void* args)
 {
 
 	struct responseTaskArgs a = *(struct responseTaskArgs*)args;
